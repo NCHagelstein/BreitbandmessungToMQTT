@@ -1,0 +1,15 @@
+version: "3.2"
+services:
+  breitbandmessung:
+    image: breitbandmessung_mqtt
+    container_name: breitbandmessung
+    restart: unless-stopped
+    volumes:
+      - ./export:/app/export
+    environment:
+      - MQTT_BROKER=127.0.0.1 #MQTT Broker IP - Required
+      - MQTT_PORT=1883 # MQTT Broker Port - Required
+      - MQTT_USERNAME=user_name # MQTT User name - Required
+      - MQTT_PASSWORD=password # MQTT password for user - Required
+      - INTERVALL_MINUTES=60 # Optional: Will set the measurement interval to 60 minutes. Default is 30
+    privileged: True

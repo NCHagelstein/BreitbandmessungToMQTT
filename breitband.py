@@ -5,6 +5,8 @@ import random
 import subprocess
 import os
 from paho.mqtt import client as mqtt_client
+import csv
+import json
 
 ### Logging festlegen
 logging.basicConfig(level=logging.INFO) # DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -52,10 +54,29 @@ def exit_gracefully(signum=0, frame=None):
 def ha_update(msg):
     if not client.is_connected:
         client.reconnect()
-    result = client.publish(MQTT_TOPIC, msg)
+    result = client.publish(MQTT_TOPIC, msg,retain=True)
     if result[0] == 0:
         logger.info(f"Send `{msg}` to topic `{MQTT_TOPIC}`")
 
+#################
+### CSV-Processing
+def processAvailableResults(out_dir):
+    for file in os.listdir(out_dir):
+        if file.endswith(".csv"):
+            file_path = os.path.join(out_dir,file)
+            with open(file_path, mode='r') as csv_file:
+                # Assuming the first row contains the header
+                csv_reader = csv.DictReader(csv_file, delimiter=";")
+                
+                # Read the first line as a dictionary
+                dict_output = next(csv_reader)
+                dict_output["Download (Mbit/s)"] = float(dict_output["Download (Mbit/s)"].replace(",","."))
+                dict_output["Upload (Mbit/s)"] = float(dict_output["Upload (Mbit/s)"].replace(",","."))
+                dict_output["Laufzeit (ms)"] = float(dict_output["Laufzeit (ms)"].replace(",","."))
+                dict_output["Timestamp"] = dict_output["Messzeitpunkt"] + "-" + dict_output["Uhrzeit"]
+            
+            ha_update(json.dumps(dict_output))
+            os.remove(file_path)
 
 #################
 ### Hauptprogramm
@@ -69,10 +90,9 @@ try:
         logger.info(f"Messung gestartet")
         processing = subprocess.run(["docker run -v /app/export:/export/ shiaky/breitbandmessung:latest  | awk '/RESULTS >>>/{x=NR+2;next}(NR<=x){print}'"], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process = str(processing.stdout.decode("utf-8"))
-        download = process.split("\n",1)[0].replace("D:[", "").replace("]","")
-        upload = process.split("\n",1)[1].replace("U:[", "").replace("]\n","")
-        msg = '{download:' + str(download) + ', updload:' + str(upload) +'}'
-        ha_update(msg)
+        processAvailableResults('/app/export')
+        #msg = '{download:' + str(download) + ', updload:' + str(upload) +'}'
+        #ha_update(msg)
         time.sleep(INTERVALL_SECONDS)
 except KeyboardInterrupt:
     if client.is_connected:
