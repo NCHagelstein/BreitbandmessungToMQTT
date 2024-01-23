@@ -13,7 +13,7 @@ Example Docker compose usage:
 version: "3.2"
 services:
   breitbandmessung:
-    image: spuzzd/breitbandmessung_mqtt
+    image: spuzzd/breitbandmessung_mqtt20240122
     container_name: breitbandmessung
     restart: unless-stopped # Recommended in case the Python script encounters an error
     volumes:
