@@ -1,8 +1,10 @@
 # BreitbandmessungToMQTT
 
+[https://hub.docker.com/repository/docker/spuzzd/breitbandmessung_mqtt](Docker hub)
+
 This repository implements a Docker container that runs internet speed tests using the web tool provided by Breitbandmessung.de
 
-The content of this repository is strongly based on shiaky's proposal here: https://community.home-assistant.io/t/automated-speedtest-with-breitbandmessung-docker-send-to-mqtt-and-read-with-node-red/544355
+The content of this repository is strongly based on shiaky's proposal [https://community.home-assistant.io/t/automated-speedtest-with-breitbandmessung-docker-send-to-mqtt-and-read-with-node-red/544355](here)
 Instead of only publishing a subset of the results from the measurement, the whole measurement is published through MQTT.
 
 The results of the individual measurements are sent through MQTT and can either be used by Node red as proposed by Shiaky or an MQTT sensor in home assistant can be used to collect and show the data.
